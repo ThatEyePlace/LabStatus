@@ -1,0 +1,3 @@
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+export const jobs=sqliteTable("jobs",{id:integer("id").primaryKey({autoIncrement:true}),firstInitial:text("first_initial").notNull(),lastName:text("last_name").notNull(),jobId:text("job_id").notNull().unique(),lab:text("lab").notNull(),status:text("status").notNull(),createdAt:text("created_at").notNull(),updatedAt:text("updated_at").notNull()});
+export const jobEvents=sqliteTable("job_events",{id:integer("id").primaryKey({autoIncrement:true}),jobId:integer("job_id").notNull(),status:text("status").notNull(),createdAt:text("created_at").notNull()});
