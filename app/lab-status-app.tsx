@@ -1,7 +1,20 @@
 "use client";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 const labs = ["iCare", "Nassau", "Marlo"];
-const statuses = ["ordered", "in process", "status checked", "completed", "shipped", "received", "called/sent message", "dispensed"];
+const statuses = [
+  "Ordered From Lab",
+  "In-Process at Lab",
+  "Status Check-Still With Lab",
+  "Completed at Lab",
+  "Shipped from Lab",
+  "Received by TEP",
+  "In-Process at TEP",
+  "Ready for Pickup at TEP",
+  "Sent Message for Pickup",
+  "Sent Message to Bring Frame",
+  "Delivered to Patient",
+  "Dispensed at TEP",
+];
 type Event = { id:number; status:string; createdAt:string };
 type Job = { id:number; firstInitial:string; lastName:string; jobId:string; lab:string; status:string; createdAt:string; updatedAt:string; events:Event[]; archived?:number };
 const readable = (value:string) => new Intl.DateTimeFormat(undefined,{dateStyle:"medium",timeStyle:"short"}).format(new Date(value));
