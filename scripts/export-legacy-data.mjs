@@ -41,7 +41,7 @@ const sqlValue = (value) => {
   return `'${String(value).replaceAll("'", "''")}'`;
 };
 
-const statements = ["BEGIN TRANSACTION;"];
+const statements = [];
 for (const job of jobs) {
   statements.push(
     `INSERT OR IGNORE INTO jobs (id,first_initial,last_name,job_id,lab,status,created_at,updated_at,archived) VALUES (${[
@@ -68,7 +68,5 @@ for (const job of jobs) {
     );
   }
 }
-statements.push("COMMIT;");
-
 await writeFile("legacy-migration.sql", `${statements.join("\n")}\n`, "utf8");
 console.log(`Prepared ${jobs.length} live LabStatus records for migration.`);
