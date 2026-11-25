@@ -1,0 +1,1 @@
+ALTER TABLE `jobs` ADD `review_link` integer DEFAULT 0 NOT NULL;
