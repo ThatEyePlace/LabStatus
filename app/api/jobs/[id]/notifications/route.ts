@@ -1,4 +1,4 @@
-import { notificationStatus } from "../../../../../lib/email.mjs";
+import { DEFAULT_TEMPLATES, validEmail, notificationStatus } from "../../../../../lib/email.mjs";
 import { env } from 'cloudflare:workers';
 import { isAuthenticated } from '../../../_lib';
 import { privateJson } from '../../../_security';
@@ -12,7 +12,15 @@ export async function GET(_request:Request,context:{params:Promise<{id:string}>}
 export async function POST(request:Request,context:{params:Promise<{id:string}>}) {
   if(!(await isAuthenticated()))return privateJson({error:'Unauthorized'},401);
   const id=Number((await context.params).id);if(!Number.isSafeInteger(id)||id<1)return privateJson({error:'Invalid job'},400);
-  return sendNotification(await request.json().catch(()=>null),id);
+  const body=await request.json().catch(()=>null);
+  const type=body?.type as string;
+  if(type!=='ready'&&type!=='reminder'&&type!=='bringFrame')return privateJson({error:'Invalid notification type.'},400);
+  const job=await env.DB.prepare('SELECT customer_email AS customerEmail FROM jobs WHERE id=?').bind(id).first<{customerEmail:string}>();
+  if(!job)return privateJson({error:'Job not found.'},404);
+  if(!validEmail(job.customerEmail))return privateJson({error:'Save a valid customer email address before sending.'},400);
+  const saved=await env.DB.prepare('SELECT subject,body FROM email_templates WHERE type=?').bind(type).first<{subject:string;body:string}>();
+  const template=saved||DEFAULT_TEMPLATES[type];
+  return sendNotification({...template,type,recipient:job.customerEmail,requestId:body.requestId,confirmResend:body.confirmResend===true},id);
 }
 // Recovery is explicit and never submits a second email.
 export async function PATCH(request:Request,context:{params:Promise<{id:string}>}) {

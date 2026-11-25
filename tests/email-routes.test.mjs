@@ -35,3 +35,29 @@ test('frame email completes status 12, reminder completes 11, and a rejected fra
   for(const [type,expected] of [['bringFrame','12. Sent Message to Bring Frame'],['reminder','11. Sent Message for Pickup']]){providerStatus=202;const id=await makeJob();assert.equal((await routes.sendNotification({...msg(),type},id)).status,200);assert.equal((await DB.prepare('SELECT status FROM jobs WHERE id=?').bind(id).first()).status,expected);assert.equal((await DB.prepare('SELECT status FROM job_events WHERE job_id=?').bind(id).first()).status,expected);}
   providerStatus=403;const id=await makeJob();assert.equal((await routes.sendNotification({...msg(),type:'bringFrame'},id)).status,422);assert.equal((await DB.prepare('SELECT status FROM jobs WHERE id=?').bind(id).first()).status,'10. Ready for Pickup at TEP');
 });
+
+test('direct send uses saved recipient and latest template, ignoring browser overrides',async()=>{
+  const id=await makeJob();
+  await DB.prepare('UPDATE jobs SET customer_email=? WHERE id=?').bind('saved@example.com',id).run();
+  await DB.prepare('INSERT INTO email_templates(type,subject,body,updated_at) VALUES(?,?,?,?)').bind('bringFrame','Saved frame subject','Saved frame message https://thateyeplace.com/pu',new Date().toISOString()).run();
+  const priorFetch=globalThis.fetch;let payload;
+  globalThis.fetch=async(url,options)=>{calls++;payload=JSON.parse(options.body);return new Response(null,{status:202});};
+  try{
+    const requestId=crypto.randomUUID();
+    const body={type:'bringFrame',requestId,recipient:'override@example.com',subject:'Ignored override',body:'Ignored body'};
+    const before=calls;
+    assert.equal((await routes.notifications.POST(request(body),{params:Promise.resolve({id:String(id)})})).status,200);
+    assert.equal(payload.message.toRecipients[0].emailAddress.address,'saved@example.com');
+    assert.equal(payload.message.subject,'Saved frame subject');
+    assert.ok(payload.message.body.content.includes('Saved frame message'));
+    assert.equal((await DB.prepare('SELECT status FROM jobs WHERE id=?').bind(id).first()).status,'12. Sent Message to Bring Frame');
+    assert.equal((await routes.notifications.POST(request(body),{params:Promise.resolve({id:String(id)})})).status,200);
+    assert.equal(calls,before+1);
+  }finally{globalThis.fetch=priorFetch;}
+});
+test('direct send refuses a job without a saved email before contacting Microsoft',async()=>{
+  const id=await makeJob(),before=calls;
+  const result=await routes.notifications.POST(request({type:'ready',requestId:crypto.randomUUID()}),{params:Promise.resolve({id:String(id)})});
+  assert.equal(result.status,400);assert.equal(calls,before);
+  assert.equal((await DB.prepare('SELECT status FROM jobs WHERE id=?').bind(id).first()).status,'10. Ready for Pickup at TEP');
+});

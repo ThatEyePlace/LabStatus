@@ -757,7 +757,7 @@ export default function LabStatusApp() {
             </button></>}
           </div>
           {pickupEmailOnly&&<p className="pickup-email-step no-print">Ready for pickup: choose an email below. Microsoft must accept the message before the notification status is recorded.</p>}
-          <JobEmailControls job={selected} onUpdated={async()=>{const response=await fetch("/api/jobs",{cache:"no-store"});if(!response.ok)return;const updated=await response.json() as Job[];setJobs(updated);setSelected(updated.find(j=>j.id===selected.id)||null);}}/>
+          <JobEmailControls key={selected.id} job={selected} onUpdated={async()=>{const response=await fetch("/api/jobs",{cache:"no-store"});if(!response.ok)return;const updated=await response.json() as Job[];setJobs(updated);setSelected(updated.find(j=>j.id===selected.id)||null);}}/>
           {!pickupEmailOnly && rxOpen && (!selected.rxHold || !activateRxHold) && (
             <form
               className="rx-send-form no-print"
