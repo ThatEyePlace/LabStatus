@@ -195,3 +195,24 @@
 .email-controls,.email-composer{margin:1.5rem 0;padding:1.25rem;border:1px solid #d1d5db;border-radius:12px;background:#fff;color:#182432}.email-address{display:flex;align-items:end;gap:1rem;flex-wrap:wrap}.email-address label{flex:1;min-width:220px}.email-buttons{display:flex;flex-wrap:wrap;gap:.65rem;margin:1rem 0}.email-controls label,.email-admin label{display:flex;flex-direction:column;gap:.5rem;margin:.8rem 0;font-size:1rem}.email-controls input,.email-admin input,.email-controls textarea,.email-admin textarea{width:100%;box-sizing:border-box;font:inherit;padding:.75rem;border:1px solid #a0aaba;border-radius:6px}.email-preview{padding:1rem;border:1px solid #d1d5db;border-radius:8px;overflow-wrap:anywhere;background:#f8fafc;line-height:1.6}.email-preview a{color:#155cc0;text-decoration:underline}.email-admin fieldset{border:1px solid #a0aaba;border-radius:8px;margin:1.5rem 0;padding:1rem}.email-admin code{overflow-wrap:anywhere}.email-controls .resend-warning{display:flex;flex-direction:row;align-items:start;background:#fff4ce;padding:1rem}.resend-warning input{width:auto;margin-top:.3rem}.notification-history article{padding:1rem 0;border-bottom:1px solid #d1d5db;overflow-wrap:anywhere}.notification-history p{margin:.5rem 0}.email-controls button,.email-admin button{min-height:42px}.email-controls button:disabled,.email-admin button:disabled{opacity:.5;cursor:not-allowed}
 
 .pickup-email-step{padding:1rem;background:#eef5ff;border-left:4px solid #24588f;border-radius:6px;line-height:1.5}
+
+.email-controls .email-bubble {
+  border: 0;
+  border-radius: 999px;
+  padding: 14px 22px;
+  min-height: 52px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+  box-shadow: 0 3px 8px rgb(15 23 42 / 14%);
+}
+.email-bubble-ready { background: #166534; }
+.email-bubble-reminder { background: #1d4ed8; }
+.email-bubble-bringFrame { background: #7e22ce; }
+.email-controls .email-bubble:hover:not(:disabled) { filter: brightness(.9); }
+.email-controls .email-bubble:focus-visible { outline: 3px solid #182432; outline-offset: 3px; }
+@media (max-width: 600px) {
+  .email-controls .email-bubble { width: 100%; }
+}
