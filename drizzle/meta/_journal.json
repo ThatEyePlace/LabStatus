@@ -8,6 +8,41 @@
       "when": 1787338242221,
       "tag": "0000_fixed_chamber",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1787504103034,
+      "tag": "0001_lyrical_franklin_storm",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1793118977513,
+      "tag": "0002_closed_blazing_skull",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1793120214896,
+      "tag": "0003_rare_nico_minoru",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1793120589097,
+      "tag": "0004_dashing_justice",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1795635087313,
+      "tag": "0005_freezing_killer_shrike",
+      "breakpoints": true
     }
   ]
 }

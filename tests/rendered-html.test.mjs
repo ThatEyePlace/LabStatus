@@ -1,33 +1,12 @@
-import assert from "node:assert/strict";
-import test from "node:test";
-
-const developmentPreviewMeta =
-  /<meta(?=[^>]*\bname=["']codex-preview["'])(?=[^>]*\bcontent=["']development["'])[^>]*>/i;
-
-test("renders development preview metadata", async () => {
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
-  const { default: worker } = await import(workerUrl.href);
-
-  const response = await worker.fetch(
-    new Request("http://localhost/", {
-      headers: { accept: "text/html" },
-    }),
-    {
-      ASSETS: {
-        fetch: async () => new Response("Not found", { status: 404 }),
-      },
-    },
-    {
-      waitUntil() {},
-      passThroughOnException() {},
-    },
-  );
-
-  assert.equal(response.status, 200);
-  assert.match(
-    response.headers.get("content-type") ?? "",
-    /^text\/html\b/i,
-  );
-  assert.match(await response.text(), developmentPreviewMeta);
-});
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { build } from 'esbuild';
+import { mkdir } from 'node:fs/promises';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+await mkdir(new URL('../.sites-runtime/tests/',import.meta.url),{recursive:true});
+await build({entryPoints:['app/lab-status-app.tsx','app/email-controls.tsx'],outdir:'.sites-runtime/tests/ui',bundle:true,platform:'node',format:'esm',jsx:'automatic',external:['react','react-dom','react/jsx-runtime']});
+const {default:App}=await import('../.sites-runtime/tests/ui/lab-status-app.js');
+const {JobEmailControls}=await import('../.sites-runtime/tests/ui/email-controls.js');
+test('anonymous initial page contains login and no patient or email controls',()=>{const html=renderToStaticMarkup(createElement(App));assert.match(html,/Owner sign-in with ChatGPT/);assert.match(html,/Access code/);assert.doesNotMatch(html,/Customer email|Send Ready for Pickup Email|Notification history/);});
+test('staff job email panel contains optional email and two explicit actions',()=>{const html=renderToStaticMarkup(createElement(JobEmailControls,{job:{id:1,customerEmail:'fixture@example.com'},onUpdated:async()=>{}}));assert.match(html,/Customer email \(optional\)/);assert.match(html,/Send Ready for Pickup Email/);assert.match(html,/Send Pickup Reminder/);assert.match(html,/Changing a job status never sends an email/);assert.doesNotMatch(html,/access_token|refresh_token|MS_CLIENT_SECRET/);});
