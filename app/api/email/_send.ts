@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { accessToken } from './_outlook';
 import { privateJson, staffName } from '../_security';
-import { dispatchGraph, validateMessage, PICKUP_STATUS } from '../../../lib/email.mjs';
+import { dispatchGraph, validateMessage, notificationStatus } from '../../../lib/email.mjs';
 export async function sendNotification(input:unknown,jobId:number|null) {
   let message;
   try{message=validateMessage(input);}catch{return privateJson({error:'Check the recipient, subject, and message.'},400);}
@@ -38,8 +38,8 @@ export async function sendNotification(input:unknown,jobId:number|null) {
     await env.DB.prepare('UPDATE email_notifications SET status=?,detail=?,completed_at=?,provider_status=? WHERE id=?').bind(result.status==='accepted'&&jobId!==null?'accepted_status_pending':result.status,result.detail,completedAt,result.providerStatus,message.requestId).run();
     if(result.status==='accepted'&&jobId!==null){
       await env.DB.batch([
-        env.DB.prepare('UPDATE jobs SET status=?,updated_at=? WHERE id=?').bind(PICKUP_STATUS,completedAt,jobId),
-        env.DB.prepare('INSERT INTO job_events(job_id,status,created_at) VALUES(?,?,?)').bind(jobId,PICKUP_STATUS,completedAt),
+        env.DB.prepare('UPDATE jobs SET status=?,updated_at=? WHERE id=?').bind(notificationStatus(message.type),completedAt,jobId),
+        env.DB.prepare('INSERT INTO job_events(job_id,status,created_at) VALUES(?,?,?)').bind(jobId,notificationStatus(message.type),completedAt),
         env.DB.prepare("UPDATE email_notifications SET status='accepted' WHERE id=?").bind(message.requestId)
       ]);
     }

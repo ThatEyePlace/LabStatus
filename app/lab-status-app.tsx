@@ -216,6 +216,7 @@ export default function LabStatusApp() {
         if (d.authenticated) loadJobs();
       });
   }, []);
+  const pickupEmailOnly = Boolean(selected && !selected.archived && selected.status === "10. Ready for Pickup at TEP");
   const savedRecordRx = recordRxData?.currentJobId === selected?.jobId ? recordRxData : null;
   const recordId = selected?.id;
   const recordUpdatedAt = selected?.updatedAt;
@@ -496,7 +497,7 @@ export default function LabStatusApp() {
           <h1>LabStatus</h1>
         </div>
         <div className="header-actions"><button className="quiet" onClick={()=>setEmailAdminOpen(!emailAdminOpen)}>Email administration</button>
-          {selected && (
+          {selected && !pickupEmailOnly && (
             <button
               className="delete-button"
               onClick={() => deleteJob(selected)}
@@ -719,7 +720,7 @@ export default function LabStatusApp() {
             >
               Close
             </button>
-            {selected.archived ? (
+            {!pickupEmailOnly && <>{selected.archived ? (
               <button className="quiet" onClick={() => restoreJob(selected)}>
                 Restore
               </button>
@@ -753,10 +754,11 @@ export default function LabStatusApp() {
             </button>
             <button className="primary" disabled={busy} onClick={() => startPrint(selected,"record")}>
               Print / Save PDF
-            </button>
+            </button></>}
           </div>
+          {pickupEmailOnly&&<p className="pickup-email-step no-print">Ready for pickup: choose an email below. Microsoft must accept the message before the notification status is recorded.</p>}
           <JobEmailControls job={selected} onUpdated={async()=>{const response=await fetch("/api/jobs",{cache:"no-store"});if(!response.ok)return;const updated=await response.json() as Job[];setJobs(updated);setSelected(updated.find(j=>j.id===selected.id)||null);}}/>
-          {rxOpen && (!selected.rxHold || !activateRxHold) && (
+          {!pickupEmailOnly && rxOpen && (!selected.rxHold || !activateRxHold) && (
             <form
               className="rx-send-form no-print"
               onSubmit={(e) => sendRx(e, selected)}
@@ -883,7 +885,7 @@ export default function LabStatusApp() {
               <dd className="status-value">{selected.status}</dd>
             </div>
           </dl>
-          <section className="record-notes-editor no-print">
+          {!pickupEmailOnly && <section className="record-notes-editor no-print">
             <div className="record-notes-heading">
               <h3>Add Note</h3>
               <small>{notesDraft.length}/4000</small>
@@ -904,13 +906,13 @@ export default function LabStatusApp() {
             >
               {busy ? "Saving…" : "Save New Note"}
             </button>
-          </section>
+          </section>}
           {!!selected.noteEntries?.length && (
             <section className="saved-notes no-print">
               <h3>Saved Notes</h3>
               {selected.noteEntries.map((note) => (
                 <article className="saved-note" key={String(note.id)}>
-                  {editingNoteId === note.id ? (
+                  {!pickupEmailOnly && editingNoteId === note.id ? (
                     <>
                       <textarea rows={4} maxLength={4000} value={editNoteDraft} onChange={(e) => setEditNoteDraft(e.target.value)} aria-label="Edit note" />
                       <div className="saved-note-actions">
@@ -923,10 +925,10 @@ export default function LabStatusApp() {
                       <p>{note.text}</p>
                       <div className="saved-note-footer">
                         <time>{readable(note.createdAt)}{note.updatedAt !== note.createdAt ? " · Edited" : ""}</time>
-                        <div className="saved-note-actions">
+                        {!pickupEmailOnly && <div className="saved-note-actions">
                           <button type="button" className="quiet" onClick={() => { setEditingNoteId(note.id); setEditNoteDraft(note.text); }}>Edit</button>
                           <button type="button" className="delete-button" onClick={() => deleteNote(selected, note)}>Delete</button>
-                        </div>
+                        </div>}
                       </div>
                     </>
                   )}
@@ -940,7 +942,7 @@ export default function LabStatusApp() {
               {selected.noteEntries.map((note) => <div className="printed-note" key={String(note.id)}><p>{note.text}</p><time>{readable(note.createdAt)}{note.updatedAt !== note.createdAt ? " · Edited" : ""}</time></div>)}
             </section>
           )}
-          <div className="status-update no-print">
+          {!pickupEmailOnly && <div className="status-update no-print">
             <span className="field-label">Record a new status</span>
             <div
               className="status-track"
@@ -980,7 +982,7 @@ export default function LabStatusApp() {
                 <option key={x}>{x}</option>
               ))}
             </select>
-          </div>
+          </div>}
           <div className="history">
             <h3>Timestamp history</h3>
             {selected.events.map((x) => (

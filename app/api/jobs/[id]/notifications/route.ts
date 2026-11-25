@@ -1,3 +1,4 @@
+import { notificationStatus } from "../../../../../lib/email.mjs";
 import { env } from 'cloudflare:workers';
 import { isAuthenticated } from '../../../_lib';
 import { privateJson } from '../../../_security';
@@ -17,10 +18,10 @@ export async function POST(request:Request,context:{params:Promise<{id:string}>}
 export async function PATCH(request:Request,context:{params:Promise<{id:string}>}) {
   if(!(await isAuthenticated()))return privateJson({error:'Unauthorized'},401);
   const jobId=Number((await context.params).id),body=await request.json().catch(()=>({}));
-  const row=await env.DB.prepare('SELECT id,status,created_at AS createdAt FROM email_notifications WHERE id=? AND job_id=?').bind(body.requestId||'',jobId).first<{id:string;status:string;createdAt:string}>();
+  const row=await env.DB.prepare('SELECT id,status,type,created_at AS createdAt FROM email_notifications WHERE id=? AND job_id=?').bind(body.requestId||'',jobId).first<{id:string;status:string;type:string;createdAt:string}>();
   if(!row)return privateJson({error:'Notification not found'},404);
   if(row.status==='accepted_status_pending'){
-    await env.DB.batch([env.DB.prepare("UPDATE jobs SET status='11. Sent Message for Pickup',updated_at=? WHERE id=?").bind(new Date().toISOString(),jobId),env.DB.prepare("INSERT INTO job_events(job_id,status,created_at) VALUES(?,'11. Sent Message for Pickup',?)").bind(jobId,new Date().toISOString()),env.DB.prepare("UPDATE email_notifications SET status='accepted' WHERE id=? AND status='accepted_status_pending'").bind(row.id)]);
+    await env.DB.batch([env.DB.prepare("UPDATE jobs SET status=?,updated_at=? WHERE id=?").bind(notificationStatus(row.type),new Date().toISOString(),jobId),env.DB.prepare("INSERT INTO job_events(job_id,status,created_at) VALUES(?,?,?)").bind(jobId,notificationStatus(row.type),new Date().toISOString()),env.DB.prepare("UPDATE email_notifications SET status='accepted' WHERE id=? AND status='accepted_status_pending'").bind(row.id)]);
   }else if(row.status==='sending'&&Date.now()-Date.parse(row.createdAt)>300000){
     await env.DB.batch([env.DB.prepare("UPDATE email_notifications SET status='unknown',detail='Stalled submission reviewed by staff. Check Outlook Sent Items before resending.' WHERE id=? AND status='sending'").bind(row.id),env.DB.prepare('DELETE FROM email_locks WHERE job_id=? AND request_id=?').bind(jobId,row.id)]);
   }else return privateJson({error:'Only stalled submissions older than five minutes or accepted updates can be reviewed.'},409);

@@ -35,9 +35,9 @@ The owner approved **glasses@thateyeplace.com** as the test recipient on Novembe
 
 ## Staff use
 
-Save an optional email on a new or existing job. Choose **Send Ready for Pickup Email** or **Send Pickup Reminder**. Edit the recipient, subject and message in the preview. Confirm resending if a previous notification was accepted or may have been sent. Click **Send email** explicitly. No status change triggers an email.
+Save an optional email on a new or existing job. Choose **Send Ready for Pickup Email**, **Send Pickup Reminder**, or **Send Bring In Your Frame Email**. Edit the recipient, subject and message in the preview. Confirm resending if a previous notification was accepted or may have been sent. Click **Send email** explicitly. No status change triggers an email.
 
-Only Microsoft Graph HTTP 202 changes a job to its existing **11. Sent Message for Pickup** status. "Microsoft accepted" describes submission acceptance, not confirmed delivery. Failed requests leave job status unchanged. Timeouts and provider server errors are uncertain: check Outlook Sent Items before any intentional resend. Submission IDs and a per-job database lock prevent double clicks from sending twice. Stalled submissions can be explicitly reviewed after five minutes without sending mail. Accepted submissions with a failed job update have a separate recovery action that updates the record without resending.
+Only Microsoft Graph HTTP 202 advances notification status: ready/reminder emails complete **11. Sent Message for Pickup**, and Bring In Your Frame completes **12. Sent Message to Bring Frame**. When an active job is at **10. Ready for Pickup at TEP**, its record shows email actions and hides the manual status picker and other record-editing actions until a send succeeds; Close and email-address editing remain available. Existing notes and prescriptions remain visible. "Microsoft accepted" describes submission acceptance, not confirmed delivery. Failed requests leave job status unchanged. Timeouts and provider server errors are uncertain: check Outlook Sent Items before any intentional resend. Submission IDs and a per-job database lock prevent double clicks from sending twice. Stalled submissions can be explicitly reviewed after five minutes without sending mail. Accepted submissions with a failed job update have a separate recovery action that updates the record without resending.
 
 Templates can be edited and saved in Email administration by authenticated staff. Connecting/disconnecting Outlook and test sending require the owner identity. Recipient addresses, templates, notification records, prescriptions and job APIs require server-side staff authorization and are returned with private/no-store headers. New mutations require a matching Origin header.
 
@@ -48,7 +48,7 @@ Templates can be edited and saved in Email administration by authenticated staff
 - The hosted source is newer than that GitHub backup; the implementation starts from the live source so prescriptions, notes, status flows and print behavior are retained.
 - Migration 0005 only adds email tables and the optional customer_email column; it does not delete or rewrite existing job or prescription records.
 - Keep the existing project ID and D1 binding. Do not create another site or database.
-- Deployment and live-mail testing remain pending until Microsoft configuration and a private staff code are supplied. No QuickBooks or accounting changes are included.
+- Microsoft configuration and the private staff code were supplied, version 28 was deployed, and the approved self-addressed test was accepted and received on November 25, 2026. The later frame-email/status change uses fixture tests for its additional status transitions. No QuickBooks or accounting changes are included.
 
 ## Validation
 
